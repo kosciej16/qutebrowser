@@ -24,6 +24,7 @@ import typing
 from functools import partial
 
 from PyQt5.QtCore import QUrl
+from PyQt5.QtWidgets import QApplication
 from qutebrowser.api import cmdutils
 from qutebrowser.completion.models import miscmodels
 from qutebrowser.utils import objreg
@@ -145,13 +146,13 @@ def resolve_tab_index(index: str) -> 'browsertab.AbstractTab':
         idx = int(index_parts[1])
     elif len(index_parts) == 1:
         idx = int(index_parts[0])
-        active_win = objreg.get('app').activeWindow()
+        active_window = QApplication.instance().activeWindow()
 
-        if active_win is None:
+        if active_window is None:
             # Not sure how you enter a command without an active window...
             raise cmdutils.CommandError(
                 "No window specified and couldn't find active window!")
-        win_id = active_win.win_id
+        win_id = active_window.win_id
 
     if win_id not in objreg.window_registry:
         raise cmdutils.CommandError(
