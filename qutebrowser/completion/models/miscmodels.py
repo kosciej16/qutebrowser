@@ -24,6 +24,8 @@ import typing
 from qutebrowser.config import config, configdata
 from qutebrowser.utils import objreg, log
 from qutebrowser.completion.models import completionmodel, listcategory, util
+from qutebrowser.config import configdata
+from qutebrowser.utils import log, objreg, tabutils
 
 
 def command(*, info):
@@ -97,51 +99,53 @@ def session(*, info=None):  # pylint: disable=unused-argument
     return model
 
 
-def _buffer(skip_win_id=None):
-    """Helper to get the completion model for buffer/other_buffer.
-
-    Args:
-        skip_win_id: The id of the window to skip, or None to include all.
-    """
-    def delete_buffer(data):
-        """Close the selected tab."""
-        win_id, tab_index = data[0].split('/')
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window=int(win_id))
-        tabbed_browser.on_tab_close_requested(int(tab_index) - 1)
-
-    model = completionmodel.CompletionModel(column_widths=(6, 40, 54))
-
-    tabs_are_windows = config.val.tabs.tabs_are_windows
-    # list storing all single-tabbed windows when tabs_are_windows
-    windows = []  # type: typing.List[typing.Tuple[str, str, str]]
-
-    for win_id in objreg.window_registry:
-        if skip_win_id is not None and win_id == skip_win_id:
-            continue
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window=win_id)
-        if tabbed_browser.shutting_down:
-            continue
-        tabs = []  # type: typing.List[typing.Tuple[str, str, str]]
-        for idx in range(tabbed_browser.widget.count()):
-            tab = tabbed_browser.widget.widget(idx)
-            tabs.append(("{}/{}".format(win_id, idx + 1),
-                         tab.url().toDisplayString(),
-                         tabbed_browser.widget.page_title(idx)))
-        if tabs_are_windows:
-            windows += tabs
-        else:
-            cat = listcategory.ListCategory(
-                str(win_id), tabs, delete_func=delete_buffer, sort=False)
-            model.add_category(cat)
-
-    if tabs_are_windows:
-        win = listcategory.ListCategory(
-            "Windows", windows, delete_func=delete_buffer, sort=False)
-        model.add_category(win)
-
-    return model
+#  def _buffer(skip_win_id=None):
+#      """Helper to get the completion model for buffer/other_buffer.
+#
+#      Args:
+#          skip_win_id: The id of the window to skip, or None to include all.
+#      """
+#      model = completionmodel.CompletionModel(column_widths=(6, 40, 54))
+#
+#  <<<<<<< HEAD
+#      tabs_are_windows = config.val.tabs.tabs_are_windows
+#      # list storing all single-tabbed windows when tabs_are_windows
+#      windows = []  # type: typing.List[typing.Tuple[str, str, str]]
+#
+#      for win_id in objreg.window_registry:
+#          if skip_win_id is not None and win_id == skip_win_id:
+#              continue
+#          tabbed_browser = objreg.get('tabbed-browser', scope='window',
+#                                      window=win_id)
+#          if tabbed_browser.shutting_down:
+#              continue
+#          tabs = []  # type: typing.List[typing.Tuple[str, str, str]]
+#          for idx in range(tabbed_browser.widget.count()):
+#              tab = tabbed_browser.widget.widget(idx)
+#              tabs.append(("{}/{}".format(win_id, idx + 1),
+#                           tab.url().toDisplayString(),
+#                           tabbed_browser.widget.page_title(idx)))
+#          if tabs_are_windows:
+#              windows += tabs
+#          else:
+#              cat = listcategory.ListCategory(
+#                  str(win_id), tabs, delete_func=delete_buffer, sort=False)
+#              model.add_category(cat)
+#
+#      if tabs_are_windows:
+#          win = listcategory.ListCategory(
+#              "Windows", windows, delete_func=delete_buffer, sort=False)
+#          model.add_category(win)
+#  =======
+#      for win_id, tabs in tabutils.all_tabs_by_window(skip_win_id).items():
+#          f_tab = (("{}/{}".format(t.win_id, i + 1), t.url().toDisplayString(),
+#                    t.title()) for i, t in enumerate(tabs))
+#          cat = listcategory.ListCategory(
+#              str(win_id), f_tab, delete_func=tabutils.delete_tab(0), sort=False)
+#          model.add_category(cat)
+#  >>>>>>> 72b6d52d806df3ae8e2599ed6f91d86f02c9c02f
+#
+#      return model
 
 
 def buffer(*, info=None):  # pylint: disable=unused-argument
@@ -149,7 +153,9 @@ def buffer(*, info=None):  # pylint: disable=unused-argument
 
     Used for switching the buffer command.
     """
-    return _buffer()
+    model = completionmodel.CompletionModel(column_widths=(6, 40, 54))
+    #  return _buffer()
+    return model
 
 
 def other_buffer(*, info):
@@ -157,7 +163,10 @@ def other_buffer(*, info):
 
     Used for the tab-take command.
     """
-    return _buffer(skip_win_id=info.win_id)
+    model = completionmodel.CompletionModel(column_widths=(6, 40, 54))
+    #  return _buffer()
+    return model
+    #  return _buffer(skip_win_id=info.win_id)
 
 
 def window(*, info):
